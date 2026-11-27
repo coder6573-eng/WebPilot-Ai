@@ -1,6 +1,9 @@
 package ai.webpilot
 
 import android.app.Application
+import android.content.Context
+import android.webkit.WebChromeClient
+import android.webkit.WebViewClient
 import android.webkit.WebView
 import androidx.compose.runtime.*
 import androidx.lifecycle.AndroidViewModel
@@ -49,6 +52,19 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
 
  init { try{apiKey=prefs.getString("gemini_key","")?:"";model=prefs.getString("gemini_model","gemini-2.5-flash")?:"gemini-2.5-flash";modelInput=model;keyInput=apiKey;keySaved=apiKey.isNotBlank()}catch(_:Exception){} }
  fun attach(view:WebView){webView=view}
+ fun ensureBrowser(context:Context){
+  if(webView!=null)return
+  webView=WebView(context).apply{
+   settings.javaScriptEnabled=true
+   settings.domStorageEnabled=true
+   settings.loadsImagesAutomatically=true
+   settings.useWideViewPort=true
+   settings.loadWithOverviewMode=true
+   webChromeClient=WebChromeClient()
+   webViewClient=object:WebViewClient(){override fun onPageFinished(view:WebView,url:String){currentUrl=url;pageTitle=view.title?:url}}
+   loadUrl(currentUrl)
+  }
+ }
  fun saveSettings(){
   try{val key=keyInput.trim();require(key.isNotBlank()){ "Enter a Gemini API key." };require(modelInput.trim().isNotBlank()){ "Enter a Gemini model name." }
    prefs.edit().putString("gemini_key",key).putString("gemini_model",modelInput.trim()).apply()
