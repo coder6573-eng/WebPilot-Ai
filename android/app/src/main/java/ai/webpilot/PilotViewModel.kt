@@ -90,6 +90,10 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
    "navigate"->{val url=action.optString("url");if(!url.startsWith("https://")&&!url.startsWith("http://"))throw IllegalArgumentException("Only HTTP and HTTPS URLs are supported.");withContext(Dispatchers.Main){webView?.loadUrl(url)};delay(2200);inspectPage()}
    "click","fill"->{
     val selector=action.optString("selector");require(selector.isNotBlank()){"Missing selector"}
+    if(type=="click"){
+     val details=eval("(function(){var e=document.querySelector("+JSONObject.quote(selector)+");if(!e)return 'missing';return [e.innerText,e.getAttribute('aria-label'),e.getAttribute('type'),e.closest('form')?'form submit':''].join(' ')})()")
+     if(Regex("(?i)\\b(buy|purchase|checkout|submit|send|delete|remove|publish|transfer|pay|confirm order)\\b").containsMatchIn(details))throw IllegalStateException("This looks like a consequential action. Complete it manually in the browser.")
+    }
     val value=JSONObject.quote(action.optString("text"))
     val script=if(type=="click")"(function(){var e=document.querySelector("+JSONObject.quote(selector)+");if(!e)return 'Element not found';e.click();return 'Clicked '+(e.innerText||e.getAttribute('aria-label')||e.tagName)})()" else "(function(){var e=document.querySelector("+JSONObject.quote(selector)+");if(!e)return 'Element not found';e.focus();e.value="+value+";e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return 'Filled field'})()"
     val result=eval(script);delay(1200);result+"\n"+inspectPage()
