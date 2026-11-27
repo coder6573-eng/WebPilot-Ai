@@ -79,7 +79,7 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
  suspend fun inspectPage():String=withContext(Dispatchers.Main){
   val w=webView ?: return@withContext "Browser is not ready yet."
   suspendCancellableCoroutine { cont ->
-   w.evaluateJavascript("""(function(){return JSON.stringify({url:location.href,title:document.title,text:(document.body?.innerText||'').slice(0,9000),elements:Array.from(document.querySelectorAll('a,button,input,textarea,[role=button]')).slice(0,65).map((e,i)=>({i,tag:e.tagName,text:(e.innerText||e.getAttribute('aria-label')||e.placeholder||'').trim().slice(0,100),type:e.type||'',href:e.href||'',placeholder:e.placeholder||''}))})})()"""){raw->
+   w.evaluateJavascript("""(function(){return JSON.stringify({url:location.href,title:document.title,text:(document.body?.innerText||'').slice(0,9000),elements:Array.from(document.querySelectorAll('a,button,input,textarea,[role=button]')).slice(0,65).map((e,i)=>{e.setAttribute('data-webpilot-target',i);return {i,selector:'[data-webpilot-target="'+i+'"]',tag:e.tagName,text:(e.innerText||e.getAttribute('aria-label')||e.placeholder||'').trim().slice(0,100),type:e.type||'',href:e.href||'',placeholder:e.placeholder||''}})})})()"""){raw->
     try{val decoded=org.json.JSONTokener(raw).nextValue().toString();val obj=JSONObject(decoded);currentUrl=obj.optString("url",currentUrl);pageTitle=obj.optString("title","");pageText=obj.optString("text","");cont.resume(obj.toString())}catch(e:Exception){cont.resume("{\"error\":\"Could not inspect page\"}")}
    }
   }
