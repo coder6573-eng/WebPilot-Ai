@@ -24,11 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 private val bg=Color(0xFF0B1220);private val panel=Color(0xFF142033);private val card=Color(0xFF1D2D45);private val blue=Color(0xFF79AFFF);private val muted=Color(0xFF91A3BA);private val ink=Color(0xFFF2F6FC)
 class MainActivity:ComponentActivity(){override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);setContent{PilotApp()}}}
 @Composable fun PilotApp(vm:PilotViewModel=viewModel()){
  var settings by remember{mutableStateOf(false)}
+ val context=LocalContext.current
+ LaunchedEffect(Unit){vm.ensureBrowser(context)}
  MaterialTheme(colorScheme=darkColorScheme(primary=blue,background=bg,surface=panel,onSurface=ink)){Surface(Modifier.fillMaxSize(),color=bg){Column{
   Row(Modifier.fillMaxWidth().background(panel).statusBarsPadding().padding(14.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Explore,null,tint=blue,modifier=Modifier.size(29.dp));Spacer(Modifier.width(9.dp));Column(Modifier.weight(1f)){Text("WebPilot",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("STANDALONE BROWSER AGENT",fontSize=9.sp,color=muted)};Box(Modifier.size(8.dp).clip(CircleShape).background(if(vm.keySaved)Color(0xFF4AD6A0) else Color(0xFFFFB45E)));IconButton(onClick={settings=true}){Icon(Icons.Default.Settings,null,tint=muted)}}
   Box(Modifier.weight(1f).fillMaxWidth()){if(vm.tab=="agent")AgentScreen(vm)else BrowserScreen(vm)}
