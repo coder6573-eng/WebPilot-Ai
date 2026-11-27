@@ -64,6 +64,9 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
    if(result.optBoolean("accepted")){add("task","Task submitted.");instruction=""}else error=result.optString("detail")
   }catch(e:Exception){error=e.message?:"Task request failed"}
  }
+ suspend fun stopTask(){
+  try{post("/api/sessions/$sessionId/tasks/stop","{}");status="paused";message="Task stopped.";add("paused",message)}catch(e:Exception){error=e.message?:"Could not stop task"}
+ }
  suspend fun resolveApproval(approved:Boolean){
   if(approvalId.isBlank())return
   try{post("/api/sessions/$sessionId/approvals/$approvalId",JSONObject().put("approved",approved).toString());add(if(approved)"approved" else "rejected",if(approved)"Approval sent." else "Action rejected.");approvalId=""}
