@@ -70,9 +70,16 @@ class BrowserManager:
           title: document.title, url: location.href,
           text: (document.body?.innerText || '').slice(0, 9000),
           elements: Array.from(document.querySelectorAll('a,button,input,textarea,select,[role=button]'))
-            .slice(0, 70).map((e,i) => ({i,tag:e.tagName.toLowerCase(),
-              text:(e.innerText || e.getAttribute('aria-label') || e.getAttribute('placeholder') || '').trim().slice(0,100),
-              type:e.getAttribute('type') || '', href:e.tagName==='A' ? e.href : ''}))
+            .slice(0, 70).map((e,i) => {
+              const tag=e.tagName.toLowerCase();
+              const esc=(v)=>String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+              let selector=e.id ? '#' + esc(e.id) :
+                (e.getAttribute('name') ? tag+'[name="' + esc(e.getAttribute('name')) + '"]' :
+                (e.getAttribute('aria-label') ? tag+'[aria-label="' + esc(e.getAttribute('aria-label')) + '"]' :
+                tag + ':nth-of-type(' + (Array.from(e.parentElement?.children || []).filter(x=>x.tagName===e.tagName).indexOf(e)+1) + ')'));
+              return {i,tag,selector,text:(e.innerText || e.getAttribute('aria-label') || e.getAttribute('placeholder') || '').trim().slice(0,100),
+                type:e.getAttribute('type') || '', href:e.tagName==='A' ? e.href : ''};
+            })
         })""")
 
     async def act(self, session, action):
