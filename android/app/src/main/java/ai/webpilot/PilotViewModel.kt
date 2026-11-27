@@ -131,7 +131,7 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
      lastResult=result.take(7000)
      if(step==12){status="limit_reached";message="Step limit reached. Give a follow-up instruction."}
     }
-   }catch(e:Exception){status="error";error=e.message?:"Agent failed";message="Task stopped.";add("error",error)}
+   }catch(e:kotlinx.coroutines.CancellationException){status="stopped";message="Task stopped by you.";add("stopped",message);throw e}catch(e:Exception){status="error";error=e.message?:"Agent failed";message="Task stopped.";add("error",error)}
    finally{busy=false}
   }
  }
