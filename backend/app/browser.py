@@ -49,6 +49,15 @@ class BrowserManager:
         context = await self.browser.new_context(
             viewport={"width": 390, "height": 844}, device_scale_factor=1,
             is_mobile=True, has_touch=True)
+        async def guard_request(route):
+            target = route.request.url
+            try:
+                if target.startswith(("http://", "https://")):
+                    validate_public_url(target)
+                await route.continue_()
+            except Exception:
+                await route.abort()
+        await context.route("**/*", guard_request)
         page = await context.new_page()
         await page.goto("https://example.com", wait_until="domcontentloaded", timeout=30000)
         session = BrowserSession(sid, context, page)
