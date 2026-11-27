@@ -19,6 +19,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 Defaults target Groq's OpenAI-compatible API. Configure AI_BASE_URL, AI_API_KEY and AI_MODEL. API docs: /docs.
 
+## Docker deployment
+
+Create `backend/.env` from `backend/.env.example`, set your AI provider key, then run:
+
+```bash
+docker compose up --build -d
+docker compose logs -f webpilot-api
+```
+
+Keep this service on a trusted private network unless you add authentication and production hardening. Do not commit `backend/.env`.
+
 ## Android
 Open `android/` in Android Studio and run app. In Settings, set backend URL. Android emulator default: `http://10.0.2.2:8000`; physical phone: use your server's LAN IP or HTTPS endpoint.
 
