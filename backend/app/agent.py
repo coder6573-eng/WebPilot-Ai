@@ -49,12 +49,22 @@ async def run_agent(session, instruction):
                 result = state
             elif kind in ("navigate","click","fill","scroll","back","wait"):
                 detail = str(action.get("url") or action.get("selector") or kind)
-                if kind == "click" and needs_approval(detail):
-                    approval_id = str(uuid.uuid4())
-                    session.pending[approval_id] = {"action":action,"description":detail}
-                    session.status = "awaiting_approval"
-                    session.emit("approval", "Review this action before it runs: " + detail, approval_id=approval_id)
-                    return
+                if kind == "click":
+                    locator = session.page.locator(str(action.get("selector", ""))).first
+                    label = ""
+                    try:
+                        label = (await locator.inner_text(timeout=2500))[:180]
+                    except Exception:
+                        pass
+                    aria = await locator.get_attribute("aria-label", timeout=2500) or ""
+                    button_type = await locator.get_attribute("type", timeout=2500) or ""
+                    detail = (detail + " " + label + " " + aria).strip()
+                    if button_type.lower() == "submit" or needs_approval(detail):
+                        approval_id = str(uuid.uuid4())
+                        session.pending[approval_id] = {"action":action,"description":detail}
+                        session.status = "awaiting_approval"
+                        session.emit("approval", "Review this action before it runs: " + detail, approval_id=approval_id)
+                        return
                 result = await browser_manager.act(session, action)
             else:
                 result = {"error":"Unsupported action; inspect the page and choose a supported action."}
