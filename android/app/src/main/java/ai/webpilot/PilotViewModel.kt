@@ -30,6 +30,7 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
  val events= mutableStateListOf<PilotEvent>()
  private var socket:WebSocket?=null
  private var approvalId=""
+ private val seenEvents=mutableSetOf<String>()
 
  fun connect(){viewModelScope.launch{
   try{
@@ -84,6 +85,6 @@ class PilotViewModel(app:Application):AndroidViewModel(app){
   val req=Request.Builder().url(baseUrl+path).get().build()
   client.newCall(req).execute().use{res->val raw=res.body?.string().orEmpty();if(!res.isSuccessful)throw IllegalStateException("HTTP "+res.code+": "+raw);JSONObject(raw)}
  }
- private fun add(type:String,text:String){if(text.isBlank()||events.lastOrNull()?.message==text)return;events.add(PilotEvent(type,text));while(events.size>50)events.removeAt(0)}
+ private fun add(type:String,text:String){val key=type+"|"+text;if(text.isBlank()||!seenEvents.add(key))return;events.add(PilotEvent(type,text));while(events.size>50)events.removeAt(0)}
  override fun onCleared(){socket?.close(1000,"App closed");client.dispatcher.executorService.shutdown()}
 }
