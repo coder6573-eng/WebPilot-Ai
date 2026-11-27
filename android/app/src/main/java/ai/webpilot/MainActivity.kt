@@ -59,8 +59,8 @@ class MainActivity:ComponentActivity(){
   Icon(icon,null,tint=if(active)blue else muted);Text(label,color=if(active)blue else muted,fontSize=11.sp)
  }
 }
-@Composable private fun PanelCard(content:@Composable ColumnScope.()->Unit){
- Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(17.dp)).background(panel).padding(14.dp),content=content)
+@Composable private fun PanelCard(modifier:Modifier=Modifier,content:@Composable ColumnScope.()->Unit){
+ Column(modifier.fillMaxWidth().clip(RoundedCornerShape(17.dp)).background(panel).padding(14.dp),content=content)
 }
 @Composable private fun AgentScreen(vm:PilotViewModel,modifier:Modifier=Modifier){
  val scope= rememberCoroutineScope()
@@ -68,8 +68,8 @@ class MainActivity:ComponentActivity(){
   Text("Your workspace",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Give WebPilot a goal. Watch it work in Browser.",fontSize=12.sp,color=muted)
   Spacer(Modifier.height(14.dp))
   Row(horizontalArrangement=Arrangement.spacedBy(9.dp)){
-   PanelCard{Text("SESSION",fontSize=9.sp,color=muted);Text(if(vm.sessionId.isBlank())"Not started" else "Connected",fontWeight=FontWeight.SemiBold)}
-   PanelCard{Text("TASK STATUS",fontSize=9.sp,color=muted);Text(vm.status.replace('_',' ').replaceFirstChar{it.uppercase()},fontWeight=FontWeight.SemiBold)}
+   PanelCard(Modifier.weight(1f)){Text("SESSION",fontSize=9.sp,color=muted);Text(if(vm.sessionId.isBlank())"Not started" else "Connected",fontWeight=FontWeight.SemiBold)}
+   PanelCard(Modifier.weight(1f)){Text("TASK STATUS",fontSize=9.sp,color=muted);Text(vm.status.replace('_',' ').replaceFirstChar{it.uppercase()},fontWeight=FontWeight.SemiBold)}
   }
   Spacer(Modifier.height(12.dp))
   PanelCard{
@@ -88,6 +88,7 @@ class MainActivity:ComponentActivity(){
    Button(onClick={scope.launch{vm.runTask()}},enabled=vm.connected&&vm.instruction.isNotBlank()&&vm.status!="running"&&vm.status!="awaiting_approval",modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(12.dp)){
     Icon(Icons.Default.PlayArrow,null);Spacer(Modifier.width(5.dp));Text("Run task")
    }
+   if(vm.status=="running") OutlinedButton(onClick={scope.launch{vm.stopTask()}},modifier=Modifier.fillMaxWidth()){Icon(Icons.Default.Stop,null);Spacer(Modifier.width(6.dp));Text("Stop task")}
    if(vm.status=="awaiting_approval"){
     Text("The agent is waiting for approval. Review the browser before proceeding.",color=Color(0xFFFFC879),fontSize=11.sp)
     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
