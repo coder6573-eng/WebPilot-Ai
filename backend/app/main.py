@@ -61,6 +61,18 @@ async def start_task(sid: str, body: TaskBody):
     s.task = asyncio.create_task(run_agent(s,body.instruction))
     return {"accepted":True,"status":"running"}
 
+@app.post("/api/sessions/{sid}/tasks/stop")
+async def stop_task(sid: str):
+    s = get_session(sid)
+    if s.task and not s.task.done():
+        s.task.cancel()
+        s.status = "paused"
+        s.emit("paused", "Task stopped by user.")
+        return {"stopped": True}
+    s.status = "paused"
+    s.emit("paused", "No active task.")
+    return {"stopped": False}
+
 @app.post("/api/sessions/{sid}/approvals/{approval_id}")
 async def approval(sid: str, approval_id: str, body: ApprovalBody):
     s = get_session(sid)
